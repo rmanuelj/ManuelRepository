@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  mysqldata:
+    image: mysqldata
+    build: ./db
+    ports:
+      - "3306:3306"
+    container_name: mysqldata
+    environment:
+      - MYSQL_ROOT_PASSWORD=password
+      - MYSQL_USER=pc2labfinal
+      - MYSQL_PASSWORD=password
+      - MYSQL_DATABASE=classicmodels
+    networks:
+      - net
+  
+  dash:
+    build: ./py
+    depends_on:
+      - mysqldata
+    networks:
+      - net
+    container_name: dashboard
+    ports:
+      - "8050:8050"
+    restart: on-failure
+
+  jupyter:
+    image: continuumio/anaconda3
+    command: jupyter notebook --port=8888 --no-browser --ip=0.0.0.0 --allow-root
+    container_name: my_jupyter
+    depends_on:
+      - mysqldata
+    ports:
+      - 8888:8888
+    networks:
+      - net
+    volumes:
+      - ./notebook:/notebooks
+
+networks:
+  net:
+    driver: bridge
